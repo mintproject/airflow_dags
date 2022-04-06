@@ -5,9 +5,11 @@ from airflow.models import Param, Variable
 # The DAG object; we'll need this to instantiate a DAG
 from airflow import DAG
 from airflow.operators.python_operator import PythonOperator, PythonVirtualenvOperator
-
 # Operators; we need this to operate!
-from airflow.operators.bash import BashOperator
+from airflow.providers.amazon.aws.hooks.s3 import S3Hook
+from dags.download_thread_dev import AWS_S3_CONN_ID
+
+AWS_S3_CONN_ID = 's3_prod'
 
 def parse_yaml_file(file_path):
     """Parse a yaml file
@@ -25,6 +27,11 @@ def parse_yaml_file(file_path):
         return yaml.load(file, Loader=Loader)
 
 def repo2cwl_function():
+    """Convert a repository to a CWL workflow
+
+    Returns:
+        _type_: _description_
+    """
     import pendulum
     import os
     from ipython2cwl.repo2cwl import repo2cwl
