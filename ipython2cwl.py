@@ -7,7 +7,6 @@ from airflow import DAG
 from airflow.operators.python_operator import PythonOperator, PythonVirtualenvOperator
 # Operators; we need this to operate!
 from airflow.providers.amazon.aws.hooks.s3 import S3Hook
-from dags.download_thread_dev import AWS_S3_CONN_ID
 
 AWS_S3_CONN_ID = 's3_prod'
 
