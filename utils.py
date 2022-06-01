@@ -17,10 +17,10 @@ def create_directory(dag_id: str, _id: str) -> str:
     else:
         dag_directory = os.path.join(dags_directory, "unknown")
 
-    dag_directory = os.path.join(dags_directory, _id)
-    if not os.path.exists(dag_directory):
-        os.makedirs(dag_directory)
+    execution_directory = os.path.join(dag_directory, _id)
+    if not os.path.exists(execution_directory):
+        os.makedirs(execution_directory)
     else:
         import shutil
-        shutil.rmtree(dag_directory, ignore_errors=True)
-    return dag_directory
+        shutil.rmtree(execution_directory, ignore_errors=True)
+    return execution_directory
