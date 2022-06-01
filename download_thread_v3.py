@@ -204,7 +204,7 @@ with DAG(
     },
     description='Download the files from a thread',
     catchup=False,
-    tags=['mint'],
+    tags=['mint', 'production'],
     start_date=datetime(2021, 1, 1),
 ) as dag:
 

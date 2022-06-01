@@ -139,7 +139,7 @@ with DAG(
     },
     description='List notebook from a git repository',
     catchup=False,
-    tags=['mic'],
+    tags=['mic', 'production'],
     start_date=datetime(2021, 1, 1),
 ) as dag:
     

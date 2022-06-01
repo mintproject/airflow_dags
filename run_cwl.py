@@ -70,7 +70,7 @@ with DAG(
     },
     description="Run CWL specification",
     catchup=False,
-    tags=["mic"],
+    tags=["mic", "production"],
     start_date=datetime(2021, 1, 1),
 ) as dag:
     now = "{{ ds_nodash }}"
