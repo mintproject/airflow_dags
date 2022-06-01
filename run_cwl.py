@@ -6,7 +6,6 @@ from airflow.models import Param, Variable
 from airflow import DAG, AirflowException
 from airflow.operators.python_operator import PythonOperator, PythonVirtualenvOperator
 
-from utils import create_directory
 
 # Operators; we need this to operate!
 
@@ -22,6 +21,7 @@ def cwltool_function(params: dict):
     import logging
     import uuid
     from cwltool import main
+    from utils import create_directory
     #obtain the parameters
     values = json.loads(params["values"])
     url = params["url"]

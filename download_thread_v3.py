@@ -12,7 +12,6 @@ from airflow.providers.amazon.aws.operators.s3_bucket import S3CreateBucketOpera
 from airflow.operators.email_operator import EmailOperator
 from airflow.operators.python_operator import PythonOperator
 
-from utils import create_directory
 
 # Change these to your identifiers, if needed.
 AWS_S3_CONN_ID = "s3_prod"
@@ -106,6 +105,8 @@ def download_file(url, directory):
 
 def download_data_function(task_instance, **kwargs):
     import os
+    from utils import create_directory
+
     params = kwargs['params']
     response = task_instance.xcom_pull(key="response")
     executions = []
