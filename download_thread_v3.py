@@ -12,6 +12,8 @@ from airflow.providers.amazon.aws.operators.s3_bucket import S3CreateBucketOpera
 from airflow.operators.email_operator import EmailOperator
 from airflow.operators.python_operator import PythonOperator
 
+from utils import create_directory
+
 # Change these to your identifiers, if needed.
 AWS_S3_CONN_ID = "s3_prod"
 
@@ -106,7 +108,7 @@ def download_data_function(task_instance, **kwargs):
     import os
     params = kwargs['params']
     response = task_instance.xcom_pull(key="response")
-
+    executions = []
     for ex in response["data"]["execution"]:
         execution = {
             "id": ex["id"],
@@ -131,20 +133,16 @@ def download_data_function(task_instance, **kwargs):
             execution["outputs"][d["model_output"]["name"]] = opurl
         executions.append(execution)    
     
+    # Create a directory for the data
+    dag_directory = create_directory("download_thread_dev", params['thread_id'])
     
-    directory_thread_id = params['thread_id']
-    if not os.path.exists(directory_thread_id):
-        os.mkdir(directory_thread_id)
-    else:
-        import shutil
-        shutil.rmtree(directory_thread_id, ignore_errors=True)
     for execution in executions:
         print(execution)
         #download files
         urls = []
         execution_id = execution['id']
         #create a directory
-        execution_directory = os.path.join(directory_thread_id, execution_id)
+        execution_directory = os.path.join(dag_directory, execution_id)
         if not os.path.exists(execution_directory):
             os.makedirs(execution_directory)
         
@@ -158,8 +156,8 @@ def download_data_function(task_instance, **kwargs):
 
     #compress directory into a zip file
     import shutil
-    shutil.make_archive(directory_thread_id, 'zip', directory_thread_id)
-    key_path = f"{directory_thread_id}.zip"
+    shutil.make_archive(dag_directory, 'zip', dag_directory)
+    key_path = f"{dag_directory}.zip"
     print(key_path)
     bucket_name = "components"
     #write file

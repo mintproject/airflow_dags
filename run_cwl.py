@@ -6,6 +6,8 @@ from airflow.models import Param, Variable
 from airflow import DAG, AirflowException
 from airflow.operators.python_operator import PythonOperator, PythonVirtualenvOperator
 
+from utils import create_directory
+
 # Operators; we need this to operate!
 
 def cwltool_function(params: dict):
@@ -24,11 +26,8 @@ def cwltool_function(params: dict):
     values = json.loads(params["values"])
     url = params["url"]
     
-    
-    #create directory for the output
-    out_dir = os.path.join(os.getcwd(), str(uuid.uuid1()))
-    os.makedirs(out_dir, exist_ok=True)
-    print("out_dir: ", out_dir)
+    #create the directory to store the outputs
+    out_dir = create_directory("run_cwl", str(uuid.uuid1()))
 
     #download file and save it as cwl.yml file
     r = requests.get(url)
