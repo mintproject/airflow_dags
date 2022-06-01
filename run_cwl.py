@@ -28,20 +28,22 @@ def cwltool_function(params: dict):
     
     #create the directory to store the outputs
     out_dir = create_directory("run_cwl", str(uuid.uuid1()))
+    cwl_file = os.path.join(out_dir, "cwl.json")
+    values_file = os.path.join(out_dir, "values.json")
 
     #download file and save it as cwl.yml file
     r = requests.get(url)
-    with open("./cwl.yml", "wb") as f:
+    with open(cwl_file, "wb") as f:
         f.write(r.content)
 
     #write values to json file
-    with open("./values.json", "w") as f:
+    with open(values_file, "w") as f:
         json.dump(values, f)
         
     logger = logging.getLogger("airflow.task")
     print(logger.handlers)
     #run cwltool
-    main.main(["--enable-pull", "--leave-tmpdir", "--debug",  "--outdir", out_dir, "./cwl.yml", "./values.json"], logger_handler=logger.handlers[0])
+    main.main(["--enable-pull", "--no-read-only", "--debug",  "--outdir", out_dir, cwl_file, values_file], logger_handler=logger.handlers[0])
     response =  {"image_name": "true"}
     return response    
 

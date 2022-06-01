@@ -159,7 +159,6 @@ def download_data_function(task_instance, **kwargs):
     import shutil
     shutil.make_archive(dag_directory, 'zip', dag_directory)
     key_path = f"{dag_directory}.zip"
-    print(key_path)
     bucket_name = "components"
     #write file
     source_s3 = S3Hook(AWS_S3_CONN_ID)
