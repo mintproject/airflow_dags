@@ -18,14 +18,15 @@ def cwltool_function(params: dict):
     import json
     import requests
     import logging
+    import uuid
     from cwltool import main
     #obtain the parameters
     values = json.loads(params["values"])
     url = params["url"]
-    ds_nodash = "test"
-
+    
+    
     #create directory for the output
-    out_dir = os.path.join(os.getcwd(), "output")
+    out_dir = os.path.join(os.getcwd(), str(uuid.uuid1()))
     os.makedirs(out_dir, exist_ok=True)
     print("out_dir: ", out_dir)
 
@@ -41,11 +42,9 @@ def cwltool_function(params: dict):
     logger = logging.getLogger("airflow.task")
     print(logger.handlers)
     #run cwltool
-    main.run(["--enable-pull", "--leave-tmpdir", "--debug",  "--log-dir", out_dir, "--outdir", out_dir, "./cwl.yml", "./values.json"], logger_handler=logger.handlers[0])
-    
-    #print files
-    for file in os.listdir(out_dir):
-        print(file)
+    main.main(["--enable-pull", "--leave-tmpdir", "--debug",  "--outdir", out_dir, "./cwl.yml", "./values.json"], logger_handler=logger.handlers[0])
+    response =  {"image_name": "true"}
+    return response    
 
 with DAG(
     "cwltool",
@@ -61,12 +60,12 @@ with DAG(
     },
     params={
         "url": Param(
-            default="https://raw.githubusercontent.com/mintproject/airflow/master/tests/cwl/aquifer/cwl.yml",
+            default="https://raw.githubusercontent.com/mintproject/airflow/master/tests/cwl/simple/cwl.yml",
             type="string",
         ),
         "values": Param(
             type="string",
-            default='{"case":2,"conc":30,"contaminant_transport_list":{"class":"File","path":"file1.png"},"aquifer_file":{"class":"File","path":"https://raw.githubusercontent.com/mintproject/aquifer/master/aquifer.ftl"},"degr":"0.5","aquifer_file_case2":{"class":"File","path":"https://raw.githubusercontent.com/mintproject/aquifer/master/aquifer2"},"aquifer_file_case1":{"class":"File","path":"https://raw.githubusercontent.com/mintproject/aquifer/master/aquifer1"},"hydr":"2","inic":"1","rech":"1","arrival_time_viz":"arrival_time.png","break_through_curve_viz":"break_through_curve.png","ground_water_flow_field_viz":"groundwaterflowfield.png"}'
+            default='{"tarfile":{"class":"File","path":"https://raw.githubusercontent.com/mintproject/airflow/master/tests/cwl/simple/hello.tar"}}'
         ),
     },
     description="Run CWL specification",
@@ -74,12 +73,12 @@ with DAG(
     tags=["mic"],
     start_date=datetime(2021, 1, 1),
 ) as dag:
-
+    now = "{{ ds_nodash }}"
     cwltool_task = PythonVirtualenvOperator(
-        task_id="cwltool",
+        task_id="cwltool_task",
         requirements=["cwl-runner", "cwltool"],
         python_callable=cwltool_function,
-        op_kwargs={"values": "{{ params.values }}", "url": "{{ params.url }}", "ds_nodash": "{{ ds_nodash }}"},
+        op_kwargs={"values": "{{ params.values }}", "url": "{{ params.url }}"},
         dag=dag,
     )
 
