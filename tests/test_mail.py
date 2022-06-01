@@ -22,7 +22,9 @@ with DAG(
     import os
     from jinja2 import Template
     dir = os.path.abspath(os.path.dirname(__file__))
-    with open(f'{dir}/template_email.html.j2') as file:
+    parent_dir = os.path.dirname(dir)
+    
+    with open(f'{parent_dir}/template_email.html.j2') as file:
         template = Template(file.read())
 
     output = template.render(size='2', link='Stuff')
