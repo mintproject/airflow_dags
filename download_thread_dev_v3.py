@@ -8,11 +8,11 @@ from airflow.models.param import Param
 from airflow.decorators import task
 # Operators; we need this to operate!
 from airflow.providers.amazon.aws.hooks.s3 import S3Hook
-from airflow.providers.amazon.aws.operators.s3_bucket import S3CreateBucketOperator, S3DeleteBucketOperator
 from airflow.operators.email_operator import EmailOperator
 from airflow.operators.python_operator import PythonOperator
 import json
 from typing import Tuple, List
+
 
 
 # Change these to your identifiers, if needed.
@@ -177,6 +177,7 @@ def download_file(url, directory):
 
 def download_data_function(task_instance, **kwargs):
     import os
+    from utils import create_directory
     params = kwargs['params']
     response = task_instance.xcom_pull(key="response")
     executions = []
@@ -209,20 +210,20 @@ def download_data_function(task_instance, **kwargs):
     directory_thread_id = params['thread_id']
     
     headers, values = generate_report(response)
-    
-    if not os.path.exists(directory_thread_id):
-        os.mkdir(directory_thread_id)
+    dag_directory = create_directory("download_thread_dev", directory_thread_id) 
+    if not os.path.exists(dag_directory):
+        os.mkdir(dag_directory)
     else:
         import shutil
-        shutil.rmtree(directory_thread_id, ignore_errors=True)
-    write_csv(headers, values, directory_thread_id, "report.csv")
+        shutil.rmtree(dag_directory, ignore_errors=True)
+    write_csv(headers, values, dag_directory, "report.csv")
 
     for execution in executions:
         #download files
         urls = []
         execution_id = execution['id']
         #create a directory
-        execution_directory = os.path.join(directory_thread_id, execution_id)
+        execution_directory = os.path.join(dag_directory, execution_id)
         if not os.path.exists(execution_directory):
             os.makedirs(execution_directory)
         os.mkdir(os.path.join(execution_directory, "inputs"))
@@ -235,8 +236,8 @@ def download_data_function(task_instance, **kwargs):
 
     #compress directory into a zip file
     import shutil
-    shutil.make_archive(directory_thread_id, 'zip', directory_thread_id)
-    key_path = f"{directory_thread_id}.zip"
+    shutil.make_archive(dag_directory, 'zip', dag_directory)
+    key_path = f"{dag_directory}.zip"
     print(key_path)
     bucket_name = "compressfiles"
     #write file
